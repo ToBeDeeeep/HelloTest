@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Word</title>
+    <style>
+        /* 清除默认边距，让内容在屏幕正中间 */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1a1a1a; /* 深色背景，让彩色更明显 */
+            font-family: Arial, sans-serif;
+        }
+
+        /* 彩色大号字体样式 */
+        .rainbow-text {
+            font-size: 8rem; /* 超大字体 */
+            font-weight: bold;
+            /* 设置彩虹渐变色 */
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
+            -webkit-background-clip: text; /* 让背景色只显示在文字上 */
+            -webkit-text-fill-color: transparent; /* 让文字本身变透明，透出背景色 */
+        }
+    </style>
+</head>
+<body>
+    <div class="rainbow-text">Hello Word</div>
+</body>
+</html>

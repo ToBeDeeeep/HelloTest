@@ -3,31 +3,538 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello Word</title>
+    <title>北京天气预报 · 统计表</title>
     <style>
-        /* 清除默认边距，让内容在屏幕正中间 */
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
-            height: 100vh;
+            padding: 0;
+        }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+            background: linear-gradient(145deg, #eef2f7 0%, #d9e2ec 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            background-color: #1a1a1a; /* 深色背景，让彩色更明显 */
-            font-family: Arial, sans-serif;
+            align-items: flex-start;
+            padding: 40px 20px;
+            color: #1e2b3c;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
         }
 
-        /* 彩色大号字体样式 */
-        .rainbow-text {
-            font-size: 8rem; /* 超大字体 */
-            font-weight: bold;
-            /* 设置彩虹渐变色 */
-            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff);
-            -webkit-background-clip: text; /* 让背景色只显示在文字上 */
-            -webkit-text-fill-color: transparent; /* 让文字本身变透明，透出背景色 */
+        /* 标题 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #0b1e2e;
+        }
+        .page-header .sub {
+            font-size: 0.9rem;
+            color: #5a6f84;
+            margin-top: 6px;
+        }
+        .page-header .sub span {
+            background: #d0ddea;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* 当前天气卡片 */
+        .current-card {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 32px 36px;
+            box-shadow: 0 12px 30px rgba(0, 20, 40, 0.08), 0 2px 8px rgba(0, 20, 40, 0.04);
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.2s;
+        }
+        .current-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .current-icon {
+            font-size: 4.2rem;
+            line-height: 1;
+        }
+        .current-temp {
+            font-size: 3.6rem;
+            font-weight: 300;
+            letter-spacing: -2px;
+            color: #0b1e2e;
+        }
+        .current-temp .unit {
+            font-size: 1.6rem;
+            font-weight: 400;
+            color: #4a6a85;
+            margin-left: 2px;
+        }
+        .current-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .current-meta .desc {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        .current-meta .range {
+            font-size: 0.95rem;
+            color: #5a6f84;
+        }
+        .current-right {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #5a6f84;
+            line-height: 1.7;
+        }
+        .current-right .label {
+            color: #8fa0b2;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* 表格卡片 */
+        .table-card {
+            background: #ffffff;
+            border-radius: 28px;
+            padding: 28px 32px 32px;
+            box-shadow: 0 12px 30px rgba(0, 20, 40, 0.08);
+            overflow-x: auto;
+        }
+        .table-card h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1e2b3c;
+        }
+        .table-card h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: #2a6f97;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        thead th {
+            text-align: left;
+            padding: 12px 8px;
+            font-weight: 500;
+            color: #5a6f84;
+            font-size: 0.8rem;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            border-bottom: 1.5px solid #e6edf4;
+        }
+        thead th:not(:first-child) {
+            text-align: center;
+        }
+        tbody td {
+            padding: 14px 8px;
+            border-bottom: 1px solid #f0f4f9;
+            vertical-align: middle;
+        }
+        tbody td:not(:first-child) {
+            text-align: center;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        tbody tr:hover {
+            background: #f7fafd;
+        }
+        .day-label {
+            font-weight: 500;
+            color: #1e2b3c;
+            white-space: nowrap;
+        }
+        .day-label .date {
+            display: block;
+            font-weight: 400;
+            font-size: 0.8rem;
+            color: #8fa0b2;
+            margin-top: 2px;
+        }
+        .weather-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            background: #eef5fb;
+            font-size: 0.85rem;
+            color: #1e4b6b;
+            white-space: nowrap;
+        }
+        .temp-high {
+            font-weight: 500;
+            color: #c44536;
+        }
+        .temp-low {
+            color: #3d6e9c;
+        }
+        .temp-diff {
+            color: #7a5c9e;
+            font-size: 0.85rem;
+        }
+
+        /* 统计汇总 */
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 32px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1.5px dashed #dde6ef;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .stat-item .stat-label {
+            font-size: 0.75rem;
+            color: #8fa0b2;
+            letter-spacing: 0.4px;
+        }
+        .stat-item .stat-value {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #0b1e2e;
+        }
+
+        /* 加载/错误状态 */
+        .loading, .error {
+            text-align: center;
+            padding: 40px 20px;
+            color: #5a6f84;
+            font-size: 0.95rem;
+        }
+        .error {
+            color: #b3413a;
+        }
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #d0ddea;
+            border-top-color: #2a6f97;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 20px 12px; }
+            .current-card { padding: 24px; flex-direction: column; align-items: flex-start; gap: 16px; }
+            .current-right { text-align: left; }
+            .table-card { padding: 20px 16px; }
+            .current-temp { font-size: 3rem; }
+            table { font-size: 0.85rem; }
+            thead th { font-size: 0.7rem; }
         }
     </style>
 </head>
 <body>
-    <div class="rainbow-text">Hello Word</div>
+
+<div class="container">
+    <div class="page-header">
+        <h1>北京 · 天气预报</h1>
+        <div class="sub">数据来源：中国天气网（中国气象局） <span id="updateTime"></span></div>
+    </div>
+
+    <!-- 当前天气 -->
+    <div id="currentSection">
+        <div class="loading">
+            <div class="spinner"></div>
+            正在获取北京天气数据…
+        </div>
+    </div>
+
+    <!-- 统计表 -->
+    <div class="table-card" id="tableCard" style="display: none;">
+        <h2>未来七日统计</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>天气</th>
+                    <th>最高温</th>
+                    <th>最低温</th>
+                    <th>温差</th>
+                </tr>
+            </thead>
+            <tbody id="forecastBody"></tbody>
+        </table>
+        <div class="stats-grid" id="statsGrid"></div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // 天气代码 → 中文描述（常用对照表）
+    // ============================================================
+    const WEATHER_CODE_MAP = {
+        '00': '晴',
+        '01': '多云',
+        '02': '阴',
+        '03': '阵雨',
+        '04': '雷阵雨',
+        '05': '雷阵雨伴有冰雹',
+        '06': '雨夹雪',
+        '07': '小雨',
+        '08': '中雨',
+        '09': '大雨',
+        '10': '暴雨',
+        '11': '大暴雨',
+        '12': '特大暴雨',
+        '13': '阵雪',
+        '14': '小雪',
+        '15': '中雪',
+        '16': '大雪',
+        '17': '暴雪',
+        '18': '雾',
+        '19': '冻雨',
+        '20': '沙尘暴',
+        '21': '小到中雨',
+        '22': '中到大雨',
+        '23': '大到暴雨',
+        '24': '暴雨到大暴雨',
+        '25': '大暴雨到特大暴雨',
+        '26': '小到中雪',
+        '27': '中到大雪',
+        '28': '大到暴雪',
+        '29': '浮尘',
+        '30': '扬沙',
+        '31': '强沙尘暴',
+        '53': '霾'
+    };
+
+    // 天气代码 → Emoji 图标（辅助展示）
+    const WEATHER_ICON_MAP = {
+        '00': '☀️', '01': '⛅', '02': '☁️', '03': '🌦️', '04': '⛈️',
+        '05': '⛈️', '06': '🌨️', '07': '🌧️', '08': '🌧️', '09': '🌧️',
+        '10': '🌧️', '11': '🌧️', '12': '🌧️', '13': '🌨️', '14': '🌨️',
+        '15': '🌨️', '16': '❄️', '17': '❄️', '18': '🌫️', '19': '🌧️',
+        '20': '🌪️', '21': '🌧️', '22': '🌧️', '23': '🌧️', '24': '🌧️',
+        '25': '🌧️', '26': '🌨️', '27': '🌨️', '28': '❄️', '29': '🌫️',
+        '30': '🌫️', '31': '🌪️', '53': '🌫️'
+    };
+
+    function getWeatherDesc(code) {
+        return WEATHER_CODE_MAP[String(code)] || '未知';
+    }
+
+    function getWeatherIcon(code) {
+        return WEATHER_ICON_MAP[String(code)] || '🌡️';
+    }
+
+    // ============================================================
+    // 中国天气网 JSONP 接口
+    // 北京城市代码：101010100
+    // 接口返回 success_jsonpCallback([...]) 格式的预报数据
+    // ============================================================
+    const CITY_CODE = '101010100';
+    const API_BASE = 'https://d1.weather.com.cn/dingzhi/' + CITY_CODE + '.html';
+
+    // 全局 JSONP 回调
+    window.success_jsonpCallback = function (data) {
+        try {
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                showError('接口返回数据为空');
+                return;
+            }
+            render(data);
+        } catch (e) {
+            console.error(e);
+            showError('数据解析失败：' + e.message);
+        }
+    };
+
+    // 动态创建 script 标签加载 JSONP
+    function loadWeather() {
+        const ts = Date.now();
+        const script = document.createElement('script');
+        script.src = API_BASE + '?_=' + ts;
+        script.onerror = function () {
+            showError('天气接口请求失败，请检查网络或稍后重试。');
+        };
+        document.body.appendChild(script);
+
+        // 兜底超时（10秒）
+        setTimeout(function () {
+            if (!document.querySelector('.current-card')) {
+                // 如果仍然显示加载中，给出错误提示
+                const loadingEl = document.querySelector('.loading');
+                if (loadingEl) {
+                    showError('请求超时，请刷新页面重试。');
+                }
+            }
+        }, 10000);
+    }
+
+    // ============================================================
+    // 渲染页面
+    // ============================================================
+    function render(data) {
+        // 假设 data 长度为 7，第一个为今天
+        // 字段：fa / fb 天气代码，fc 最高温，fd 最低温
+        const today = data[0];
+        const todayHigh = parseInt(today.fc, 10);
+        const todayLow = parseInt(today.fd, 10);
+        const todayCode = today.fa || today.fb;
+        const todayDesc = getWeatherDesc(todayCode);
+        const todayIcon = getWeatherIcon(todayCode);
+
+        // --- 当前天气卡片 ---
+        const currentSection = document.getElementById('currentSection');
+        currentSection.innerHTML = `
+            <div class="current-card">
+                <div class="current-left">
+                    <div class="current-icon">${todayIcon}</div>
+                    <div class="current-temp">
+                        ${todayHigh}<span class="unit">°C</span>
+                    </div>
+                    <div class="current-meta">
+                        <div class="desc">${todayDesc}</div>
+                        <div class="range">最低 ${todayLow}°C · 最高 ${todayHigh}°C</div>
+                    </div>
+                </div>
+                <div class="current-right">
+                    <div class="label">数据更新</div>
+                    <div>${new Date().toLocaleString('zh-CN', { hour12: false })}</div>
+                </div>
+            </div>
+        `;
+
+        // --- 统计表 ---
+        const tbody = document.getElementById('forecastBody');
+        tbody.innerHTML = '';
+
+        const dayNames = ['今天', '明天', '后天', '周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        const rows = data.slice(0, 7); // 最多7天
+
+        let totalHigh = 0, totalLow = 0, totalDiff = 0;
+        let maxHigh = -Infinity, minLow = Infinity;
+        let count = 0;
+
+        rows.forEach(function (item, index) {
+            const high = parseInt(item.fc, 10);
+            const low = parseInt(item.fd, 10);
+            const diff = high - low;
+            const code = item.fa || item.fb;
+            const desc = getWeatherDesc(code);
+            const icon = getWeatherIcon(code);
+
+            // 日期标签
+            let label = dayNames[index] || ('第' + (index + 1) + '天');
+            // 对于超出“后天”的，使用“周X”格式
+            if (index >= 3) {
+                const d = new Date();
+                d.setDate(d.getDate() + index);
+                const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                label = weekdays[d.getDay()];
+            }
+            const dateStr = (function () {
+                const d = new Date();
+                d.setDate(d.getDate() + index);
+                return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+            })();
+
+            totalHigh += high;
+            totalLow += low;
+            totalDiff += diff;
+            if (high > maxHigh) maxHigh = high;
+            if (low < minLow) minLow = low;
+            count++;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div class="day-label">
+                        ${label}
+                        <span class="date">${dateStr}</span>
+                    </div>
+                </td>
+                <td><span class="weather-badge">${icon} ${desc}</span></td>
+                <td class="temp-high">${high}°C</td>
+                <td class="temp-low">${low}°C</td>
+                <td class="temp-diff">${diff}°</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // 统计汇总
+        const avgHigh = count ? (totalHigh / count).toFixed(1) : '—';
+        const avgLow = count ? (totalLow / count).toFixed(1) : '—';
+        const avgDiff = count ? (totalDiff / count).toFixed(1) : '—';
+
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="stat-item">
+                <span class="stat-label">七日平均高温</span>
+                <span class="stat-value">${avgHigh}°C</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">七日平均低温</span>
+                <span class="stat-value">${avgLow}°C</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">平均温差</span>
+                <span class="stat-value">${avgDiff}°</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">期间最高温</span>
+                <span class="stat-value" style="color:#c44536;">${maxHigh}°C</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">期间最低温</span>
+                <span class="stat-value" style="color:#3d6e9c;">${minLow}°C</span>
+            </div>
+        `;
+
+        document.getElementById('tableCard').style.display = 'block';
+        document.getElementById('updateTime').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false });
+    }
+
+    // ============================================================
+    // 错误处理
+    // ============================================================
+    function showError(msg) {
+        const currentSection = document.getElementById('currentSection');
+        currentSection.innerHTML = `
+            <div class="current-card" style="justify-content:center;">
+                <div class="error">⚠️ ${msg}</div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // 启动
+    // ============================================================
+    loadWeather();
+</script>
+
 </body>
 </html>

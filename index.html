@@ -3,106 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>北京天气预报 · 统计表</title>
+    <title>北京天气 · 空气质量</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
             background: linear-gradient(145deg, #eef2f7 0%, #d9e2ec 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 40px 20px;
-            color: #1e2b3c;
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: flex-start; padding: 40px 20px; color: #1e2b3c;
         }
-        .container { max-width: 900px; width: 100%; }
+        .container { max-width: 1000px; width: 100%; }
 
         .page-header { text-align: center; margin-bottom: 32px; }
-        .page-header h1 {
-            font-size: 2.2rem; font-weight: 600;
-            letter-spacing: 2px; color: #0b1e2e;
-        }
-        .page-header .sub {
-            font-size: 0.9rem; color: #5a6f84; margin-top: 6px;
-        }
-        .page-header .sub span {
-            background: #d0ddea; padding: 2px 10px;
-            border-radius: 20px; font-size: 0.8rem;
-        }
+        .page-header h1 { font-size: 2.2rem; font-weight: 600; letter-spacing: 2px; color: #0b1e2e; }
+        .page-header .sub { font-size: 0.9rem; color: #5a6f84; margin-top: 6px; }
 
+        /* 天气卡片（沿用） */
         .current-card {
-            background: #ffffff; border-radius: 28px; padding: 32px 36px;
-            box-shadow: 0 12px 30px rgba(0, 20, 40, 0.08), 0 2px 8px rgba(0, 20, 40, 0.04);
-            margin-bottom: 28px;
-            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            background: #fff; border-radius: 28px; padding: 32px 36px;
+            box-shadow: 0 12px 30px rgba(0,20,40,.08), 0 2px 8px rgba(0,20,40,.04);
+            margin-bottom: 24px; display: flex; flex-wrap: wrap;
+            align-items: center; justify-content: space-between;
         }
         .current-left { display: flex; align-items: center; gap: 20px; }
         .current-icon { font-size: 4.2rem; line-height: 1; }
-        .current-temp {
-            font-size: 3.6rem; font-weight: 300; letter-spacing: -2px; color: #0b1e2e;
-        }
-        .current-temp .unit {
-            font-size: 1.6rem; font-weight: 400; color: #4a6a85; margin-left: 2px;
-        }
+        .current-temp { font-size: 3.6rem; font-weight: 300; letter-spacing: -2px; color: #0b1e2e; }
+        .current-temp .unit { font-size: 1.6rem; font-weight: 400; color: #4a6a85; margin-left: 2px; }
         .current-meta { display: flex; flex-direction: column; gap: 6px; }
         .current-meta .desc { font-size: 1.2rem; font-weight: 500; }
-        .current-meta .range { font-size: 0.95rem; color: #5a6f84; }
-        .current-right { text-align: right; font-size: 0.9rem; color: #5a6f84; line-height: 1.7; }
-        .current-right .label { color: #8fa0b2; font-size: 0.8rem; letter-spacing: 0.5px; }
+        .current-meta .range { font-size: .95rem; color: #5a6f84; }
+        .current-right { text-align: right; font-size: .9rem; color: #5a6f84; line-height: 1.7; }
+        .current-right .label { color: #8fa0b2; font-size: .8rem; letter-spacing: .5px; }
 
-        .table-card {
-            background: #ffffff; border-radius: 28px; padding: 28px 32px 32px;
-            box-shadow: 0 12px 30px rgba(0, 20, 40, 0.08);
-            overflow-x: auto;
+        /* 通用卡片 */
+        .card {
+            background: #fff; border-radius: 28px; padding: 28px 32px 32px;
+            box-shadow: 0 12px 30px rgba(0,20,40,.08); margin-bottom: 24px;
         }
-        .table-card h2 {
+        .card h2 {
             font-size: 1.15rem; font-weight: 600; margin-bottom: 20px;
             display: flex; align-items: center; gap: 8px; color: #1e2b3c;
         }
-        .table-card h2::before {
+        .card h2::before {
             content: ''; display: inline-block; width: 4px; height: 20px;
             background: #2a6f97; border-radius: 4px;
         }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        /* 表格 */
+        table { width: 100%; border-collapse: collapse; font-size: .95rem; }
         thead th {
             text-align: left; padding: 12px 8px; font-weight: 500;
-            color: #5a6f84; font-size: 0.8rem; letter-spacing: 0.6px;
+            color: #5a6f84; font-size: .8rem; letter-spacing: .6px;
             text-transform: uppercase; border-bottom: 1.5px solid #e6edf4;
         }
         thead th:not(:first-child) { text-align: center; }
-        tbody td { padding: 14px 8px; border-bottom: 1px solid #f0f4f9; vertical-align: middle; }
+        tbody td { padding: 14px 8px; border-bottom: 1px solid #f0f4f9; }
         tbody td:not(:first-child) { text-align: center; }
         tbody tr:last-child td { border-bottom: none; }
         tbody tr:hover { background: #f7fafd; }
-        .day-label { font-weight: 500; color: #1e2b3c; white-space: nowrap; }
-        .day-label .date {
-            display: block; font-weight: 400; font-size: 0.8rem;
-            color: #8fa0b2; margin-top: 2px;
-        }
+        .day-label { font-weight: 500; }
+        .day-label .date { display: block; font-weight: 400; font-size: .8rem; color: #8fa0b2; margin-top: 2px; }
         .weather-badge {
             display: inline-block; padding: 4px 14px; border-radius: 20px;
-            background: #eef5fb; font-size: 0.85rem; color: #1e4b6b; white-space: nowrap;
+            background: #eef5fb; font-size: .85rem; color: #1e4b6b; white-space: nowrap;
         }
         .temp-high { font-weight: 500; color: #c44536; }
         .temp-low { color: #3d6e9c; }
-        .temp-diff { color: #7a5c9e; font-size: 0.85rem; }
+        .temp-diff { color: #7a5c9e; font-size: .85rem; }
 
-        .stats-grid {
+        /* 图表容器 */
+        .chart-wrap { position: relative; height: 360px; margin-top: 8px; }
+        .chart-note { font-size: .78rem; color: #8fa0b2; margin-top: 14px; line-height: 1.6; }
+
+        /* 空气质量统计小条 */
+        .aq-stats {
             display: flex; flex-wrap: wrap; gap: 16px 32px;
-            margin-top: 24px; padding-top: 20px; border-top: 1.5px dashed #dde6ef;
+            margin-top: 20px; padding-top: 18px; border-top: 1.5px dashed #dde6ef;
         }
-        .stat-item { display: flex; flex-direction: column; gap: 2px; }
-        .stat-item .stat-label { font-size: 0.75rem; color: #8fa0b2; letter-spacing: 0.4px; }
-        .stat-item .stat-value { font-size: 1.15rem; font-weight: 600; color: #0b1e2e; }
+        .aq-stat { display: flex; flex-direction: column; gap: 2px; }
+        .aq-stat .label { font-size: .72rem; color: #8fa0b2; letter-spacing: .4px; }
+        .aq-stat .value { font-size: 1.1rem; font-weight: 600; color: #0b1e2e; }
 
-        .loading, .error { text-align: center; padding: 40px 20px; color: #5a6f84; font-size: 0.95rem; }
+        /* 加载/错误 */
+        .loading, .error { text-align: center; padding: 40px 20px; color: #5a6f84; font-size: .95rem; }
         .error { color: #b3413a; }
         .spinner {
             width: 28px; height: 28px; border: 3px solid #d0ddea;
             border-top-color: #2a6f97; border-radius: 50%;
-            animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+            animation: spin .8s linear infinite; margin: 0 auto 12px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -110,10 +99,11 @@
             body { padding: 20px 12px; }
             .current-card { padding: 24px; flex-direction: column; align-items: flex-start; gap: 16px; }
             .current-right { text-align: left; }
-            .table-card { padding: 20px 16px; }
+            .card { padding: 20px 16px; }
             .current-temp { font-size: 3rem; }
-            table { font-size: 0.85rem; }
-            thead th { font-size: 0.7rem; }
+            table { font-size: .85rem; }
+            thead th { font-size: .7rem; }
+            .chart-wrap { height: 280px; }
         }
     </style>
 </head>
@@ -121,231 +111,314 @@
 
 <div class="container">
     <div class="page-header">
-        <h1>北京 · 天气预报</h1>
-        <div class="sub">数据来源：Open-Meteo（含 CMA 等模型） <span id="updateTime"></span></div>
-    </div>
-
-    <div id="currentSection">
-        <div class="loading">
-            <div class="spinner"></div>
-            正在获取北京天气数据…
+        <h1>北京 · 天气与空气质量</h1>
+        <div class="sub">
+            天气：Open-Meteo · 空气质量：Open-Meteo / CAMS
+            <span id="updateTime"></span>
         </div>
     </div>
 
-    <div class="table-card" id="tableCard" style="display: none;">
-        <h2>未来七日统计</h2>
+    <!-- 天气区（保持原有功能） -->
+    <div id="weatherSection">
+        <div class="loading"><div class="spinner"></div>正在获取天气数据…</div>
+    </div>
+
+    <!-- 七日天气统计表 -->
+    <div class="card" id="weatherTableCard" style="display: none;">
+        <h2>未来七日天气统计</h2>
         <table>
             <thead>
-                <tr>
-                    <th>日期</th>
-                    <th>天气</th>
-                    <th>最高温</th>
-                    <th>最低温</th>
-                    <th>温差</th>
-                </tr>
+                <tr><th>日期</th><th>天气</th><th>最高温</th><th>最低温</th><th>温差</th></tr>
             </thead>
             <tbody id="forecastBody"></tbody>
         </table>
-        <div class="stats-grid" id="statsGrid"></div>
+        <div class="aq-stats" id="weatherStatsGrid"></div>
+    </div>
+
+    <!-- 空气质量曲线图（新增） -->
+    <div class="card" id="airCard" style="display: none;">
+        <h2>近 5 个月空气质量趋势</h2>
+        <div class="chart-wrap">
+            <canvas id="airChart"></canvas>
+        </div>
+        <div class="aq-stats" id="airStatsGrid"></div>
+        <div class="chart-note">
+            指标说明：<strong>PM2.5</strong> 为细颗粒物（μg/m³），是雾霾的核心观测值；
+            <strong>US AQI</strong> 为美国环保署空气质量指数（0–500，越低越好），综合反映 PM2.5、PM10、臭氧等污染物。
+            数据基于 CAMS 再分析，为模型估算值，与地面监测站实测可能存在偏差。
+        </div>
     </div>
 </div>
 
 <script>
     // ============================================================
-    // WMO 天气代码 → 中文描述（Open-Meteo 使用 WMO 标准）
+    // 通用：WMO 天气代码映射（沿用）
     // ============================================================
     const WMO_MAP = {
-        0: '晴',
-        1: '大部晴朗', 2: '多云', 3: '阴',
-        45: '雾', 48: '雾凇',
-        51: '小毛毛雨', 53: '毛毛雨', 55: '大毛毛雨',
-        56: '冻毛毛雨', 57: '强冻毛毛雨',
-        61: '小雨', 63: '中雨', 65: '大雨',
-        66: '冻雨', 67: '强冻雨',
-        71: '小雪', 73: '中雪', 75: '大雪',
-        77: '米雪',
-        80: '小阵雨', 81: '阵雨', 82: '强阵雨',
-        85: '小阵雪', 86: '大阵雪',
-        95: '雷暴', 96: '雷暴伴小冰雹', 99: '雷暴伴大冰雹'
+        0:'晴',1:'大部晴朗',2:'多云',3:'阴',45:'雾',48:'雾凇',
+        51:'小毛毛雨',53:'毛毛雨',55:'大毛毛雨',56:'冻毛毛雨',57:'强冻毛毛雨',
+        61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'强冻雨',
+        71:'小雪',73:'中雪',75:'大雪',77:'米雪',
+        80:'小阵雨',81:'阵雨',82:'强阵雨',85:'小阵雪',86:'大阵雪',
+        95:'雷暴',96:'雷暴伴小冰雹',99:'雷暴伴大冰雹'
     };
-
     const WMO_ICON = {
-        0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
-        45: '🌫️', 48: '🌫️',
-        51: '🌦️', 53: '🌦️', 55: '🌦️', 56: '🌧️', 57: '🌧️',
-        61: '🌧️', 63: '🌧️', 65: '🌧️', 66: '🌧️', 67: '🌧️',
-        71: '🌨️', 73: '🌨️', 75: '❄️', 77: '🌨️',
-        80: '🌦️', 81: '🌧️', 82: '⛈️',
-        85: '🌨️', 86: '❄️',
-        95: '⛈️', 96: '⛈️', 99: '⛈️'
+        0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
+        51:'🌦️',53:'🌦️',55:'🌦️',56:'🌧️',57:'🌧️',
+        61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',
+        71:'🌨️',73:'🌨️',75:'❄️',77:'🌨️',
+        80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'❄️',
+        95:'⛈️',96:'⛈️',99:'⛈️'
     };
-
-    function getDesc(code) { return WMO_MAP[code] || '未知'; }
-    function getIcon(code) { return WMO_ICON[code] || '🌡️'; }
+    const getDesc = c => WMO_MAP[c] || '未知';
+    const getIcon = c => WMO_ICON[c] || '🌡️';
 
     // ============================================================
-    // Open-Meteo 每日预报接口（北京经纬度）
-    // 请求参数：最高/最低温、天气代码
+    // 1. 天气数据（沿用上一版）
     // ============================================================
-    const LAT = 39.9042;
-    const LON = 116.4074;
-
-    const API_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
+    const LAT = 39.9042, LON = 116.4074;
+    const WEATHER_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
         `&daily=temperature_2m_max,temperature_2m_min,weathercode` +
         `&timezone=Asia/Shanghai&forecast_days=7`;
 
     async function loadWeather() {
         try {
-            const resp = await fetch(API_URL);
+            const resp = await fetch(WEATHER_URL);
             if (!resp.ok) throw new Error('HTTP ' + resp.status);
-
             const json = await resp.json();
-            const daily = json.daily;
-
-            if (!daily || !daily.time || daily.time.length === 0) {
-                throw new Error('返回数据为空');
-            }
-
-            render(daily);
+            if (!json.daily?.time?.length) throw new Error('天气数据为空');
+            renderWeather(json.daily);
         } catch (e) {
-            console.error(e);
-            showError('天气数据获取失败：' + e.message);
+            document.getElementById('weatherSection').innerHTML =
+                `<div class="current-card" style="justify-content:center;"><div class="error">⚠️ 天气数据获取失败：${e.message}</div></div>`;
         }
     }
 
-    // ============================================================
-    // 渲染
-    // ============================================================
-    function render(daily) {
-        const days = daily.time;
-        const highs = daily.temperature_2m_max;
-        const lows = daily.temperature_2m_min;
-        const codes = daily.weathercode;
+    function renderWeather(daily) {
+        const highs = daily.temperature_2m_max, lows = daily.temperature_2m_min, codes = daily.weathercode;
 
-        // --- 当前天气（取今天） ---
-        const todayHigh = Math.round(highs[0]);
-        const todayLow = Math.round(lows[0]);
-        const todayCode = codes[0];
-        const todayDesc = getDesc(todayCode);
-        const todayIcon = getIcon(todayCode);
-
-        document.getElementById('currentSection').innerHTML = `
+        const h0 = Math.round(highs[0]), l0 = Math.round(lows[0]);
+        const c0 = codes[0];
+        document.getElementById('weatherSection').innerHTML = `
             <div class="current-card">
                 <div class="current-left">
-                    <div class="current-icon">${todayIcon}</div>
-                    <div class="current-temp">
-                        ${todayHigh}<span class="unit">°C</span>
-                    </div>
+                    <div class="current-icon">${getIcon(c0)}</div>
+                    <div class="current-temp">${h0}<span class="unit">°C</span></div>
                     <div class="current-meta">
-                        <div class="desc">${todayDesc}</div>
-                        <div class="range">最低 ${todayLow}°C · 最高 ${todayHigh}°C</div>
+                        <div class="desc">${getDesc(c0)}</div>
+                        <div class="range">最低 ${l0}°C · 最高 ${h0}°C</div>
                     </div>
                 </div>
                 <div class="current-right">
-                    <div class="label">数据更新</div>
+                    <div class="label">天气数据更新</div>
                     <div>${new Date().toLocaleString('zh-CN', { hour12: false })}</div>
                 </div>
-            </div>
-        `;
+            </div>`;
 
-        // --- 统计表 ---
         const tbody = document.getElementById('forecastBody');
         tbody.innerHTML = '';
+        const dayNames = ['今天','明天','后天'];
+        const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
 
-        const dayNames = ['今天', '明天', '后天'];
-        const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-
-        let totalHigh = 0, totalLow = 0, totalDiff = 0;
-        let maxHigh = -Infinity, minLow = Infinity;
-        let count = 0;
-
-        days.forEach(function (dateStr, i) {
-            const high = Math.round(highs[i]);
-            const low = Math.round(lows[i]);
-            const diff = high - low;
-            const code = codes[i];
-            const desc = getDesc(code);
-            const icon = getIcon(code);
-
-            // 日期标签
-            let label;
-            if (i < 3) {
-                label = dayNames[i];
-            } else {
-                const d = new Date(dateStr + 'T00:00:00');
-                label = weekdayNames[d.getDay()];
-            }
-            const shortDate = (function () {
-                const d = new Date(dateStr + 'T00:00:00');
-                return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+        let tH = 0, tL = 0, tD = 0, maxH = -Infinity, minL = Infinity, n = 0;
+        daily.time.forEach((ds, i) => {
+            const h = Math.round(highs[i]), l = Math.round(lows[i]), d = h - l;
+            const label = i < 3 ? dayNames[i] : (() => {
+                const dt = new Date(ds + 'T00:00:00'); return weekdays[dt.getDay()];
             })();
-
-            totalHigh += high;
-            totalLow += low;
-            totalDiff += diff;
-            if (high > maxHigh) maxHigh = high;
-            if (low < minLow) minLow = low;
-            count++;
+            const shortDate = (() => {
+                const dt = new Date(ds + 'T00:00:00'); return (dt.getMonth()+1)+'月'+dt.getDate()+'日';
+            })();
+            tH += h; tL += l; tD += d; n++;
+            if (h > maxH) maxH = h;
+            if (l < minL) minL = l;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>
-                    <div class="day-label">
-                        ${label}
-                        <span class="date">${shortDate}</span>
-                    </div>
-                </td>
-                <td><span class="weather-badge">${icon} ${desc}</span></td>
-                <td class="temp-high">${high}°C</td>
-                <td class="temp-low">${low}°C</td>
-                <td class="temp-diff">${diff}°</td>
-            `;
+                <td><div class="day-label">${label}<span class="date">${shortDate}</span></div></td>
+                <td><span class="weather-badge">${getIcon(codes[i])} ${getDesc(codes[i])}</span></td>
+                <td class="temp-high">${h}°C</td>
+                <td class="temp-low">${l}°C</td>
+                <td class="temp-diff">${d}°</td>`;
             tbody.appendChild(tr);
         });
 
-        // --- 统计汇总 ---
-        const avgHigh = (totalHigh / count).toFixed(1);
-        const avgLow = (totalLow / count).toFixed(1);
-        const avgDiff = (totalDiff / count).toFixed(1);
+        document.getElementById('weatherStatsGrid').innerHTML = `
+            <div class="aq-stat"><span class="label">七日平均高温</span><span class="value">${(tH/n).toFixed(1)}°C</span></div>
+            <div class="aq-stat"><span class="label">七日平均低温</span><span class="value">${(tL/n).toFixed(1)}°C</span></div>
+            <div class="aq-stat"><span class="label">平均温差</span><span class="value">${(tD/n).toFixed(1)}°</span></div>
+            <div class="aq-stat"><span class="label">期间最高温</span><span class="value" style="color:#c44536;">${maxH}°C</span></div>
+            <div class="aq-stat"><span class="label">期间最低温</span><span class="value" style="color:#3d6e9c;">${minL}°C</span></div>`;
 
-        document.getElementById('statsGrid').innerHTML = `
-            <div class="stat-item">
-                <span class="stat-label">七日平均高温</span>
-                <span class="stat-value">${avgHigh}°C</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">七日平均低温</span>
-                <span class="stat-value">${avgLow}°C</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">平均温差</span>
-                <span class="stat-value">${avgDiff}°</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">期间最高温</span>
-                <span class="stat-value" style="color:#c44536;">${maxHigh}°C</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">期间最低温</span>
-                <span class="stat-value" style="color:#3d6e9c;">${minLow}°C</span>
-            </div>
-        `;
-
-        document.getElementById('tableCard').style.display = 'block';
-        document.getElementById('updateTime').textContent = '更新于 ' +
-            new Date().toLocaleTimeString('zh-CN', { hour12: false });
+        document.getElementById('weatherTableCard').style.display = 'block';
+        document.getElementById('updateTime').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false });
     }
 
-    function showError(msg) {
-        document.getElementById('currentSection').innerHTML = `
-            <div class="current-card" style="justify-content:center;">
-                <div class="error">⚠️ ${msg}</div>
-            </div>
-        `;
+    // ============================================================
+    // 2. 空气质量历史数据（新增）
+    //    Open-Meteo Air Quality API · 免 Key · CORS 开启
+    //    历史数据可回溯至 ~2022-07
+    // ============================================================
+    function getDateRange(daysBack) {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - daysBack);
+        const fmt = d => d.toISOString().slice(0, 10);
+        return { start: fmt(start), end: fmt(end) };
     }
 
-    // 启动
+    async function loadAirQuality() {
+        const { start, end } = getDateRange(150); // 约 5 个月
+        const url = `https://air-quality-api.open-meteo.com/v1/air-quality` +
+            `?latitude=${LAT}&longitude=${LON}` +
+            `&hourly=pm2_5,us_aqi` +
+            `&timezone=Asia/Shanghai` +
+            `&start_date=${start}&end_date=${end}`;
+
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const json = await resp.json();
+            if (!json.hourly?.time?.length) throw new Error('空气质量数据为空');
+
+            // 按天聚合（每日均值），避免 3600+ 个点挤在一起
+            const daily = aggregateDaily(json.hourly);
+            renderAirQuality(daily);
+        } catch (e) {
+            document.getElementById('airCard').style.display = 'block';
+            document.getElementById('airCard').querySelector('.chart-wrap').innerHTML =
+                `<div class="error" style="padding-top:120px;">⚠️ 空气质量数据获取失败：${e.message}</div>`;
+        }
+    }
+
+    /** 将逐小时数据聚合为每日均值 */
+    function aggregateDaily(hourly) {
+        const map = new Map(); // date → { pmSum, pmN, aqiSum, aqiN }
+        hourly.time.forEach((iso, i) => {
+            const date = iso.slice(0, 10);
+            if (!map.has(date)) map.set(date, { pmSum: 0, pmN: 0, aqiSum: 0, aqiN: 0 });
+            const bucket = map.get(date);
+            const pm = hourly.pm2_5[i];
+            const aqi = hourly.us_aqi[i];
+            if (pm != null) { bucket.pmSum += pm; bucket.pmN++; }
+            if (aqi != null) { bucket.aqiSum += aqi; bucket.aqiN++; }
+        });
+
+        const labels = [], pm2_5 = [], usAqi = [];
+        for (const [date, b] of [...map.entries()].sort()) {
+            labels.push(date);
+            pm2_5.push(b.pmN ? +(b.pmSum / b.pmN).toFixed(1) : null);
+            usAqi.push(b.aqiN ? Math.round(b.aqiSum / b.aqiN) : null);
+        }
+        return { labels, pm2_5, usAqi };
+    }
+
+    function renderAirQuality(daily) {
+        document.getElementById('airCard').style.display = 'block';
+
+        const ctx = document.getElementById('airChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: daily.labels,
+                datasets: [
+                    {
+                        label: 'PM2.5 (μg/m³)',
+                        data: daily.pm2_5,
+                        borderColor: '#c44536',
+                        backgroundColor: 'rgba(196,69,54,0.06)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        tension: 0.25,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'US AQI',
+                        data: daily.usAqi,
+                        borderColor: '#2a6f97',
+                        backgroundColor: 'rgba(42,111,151,0.04)',
+                        borderWidth: 2,
+                        borderDash: [5, 3],
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        tension: 0.25,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { boxWidth: 14, boxHeight: 2, padding: 18, font: { size: 12 } } },
+                    tooltip: {
+                        backgroundColor: 'rgba(11,30,46,0.92)',
+                        padding: 12,
+                        titleFont: { size: 12 },
+                        bodyFont: { size: 12 },
+                        callbacks: {
+                            title: items => {
+                                const d = new Date(items[0].label + 'T00:00:00');
+                                return d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 12,
+                            font: { size: 10 },
+                            color: '#8fa0b2',
+                            callback: function (val) {
+                                const raw = this.getLabelForValue(val);
+                                if (!raw) return '';
+                                const d = new Date(raw + 'T00:00:00');
+                                return (d.getMonth() + 1) + '/' + d.getDate();
+                            }
+                        },
+                        grid: { display: false }
+                    },
+                    y: {
+                        position: 'left',
+                        title: { display: true, text: 'PM2.5 (μg/m³)', color: '#c44536', font: { size: 11 } },
+                        ticks: { color: '#c44536', font: { size: 10 } },
+                        grid: { color: 'rgba(0,0,0,0.04)' }
+                    },
+                    y1: {
+                        position: 'right',
+                        title: { display: true, text: 'US AQI', color: '#2a6f97', font: { size: 11 } },
+                        ticks: { color: '#2a6f97', font: { size: 10 } },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // 空气质量统计摘要
+        const validPm = daily.pm2_5.filter(v => v != null);
+        const validAqi = daily.usAqi.filter(v => v != null);
+        const avg = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+        const pmAvg = avg(validPm), pmMax = Math.max(...validPm);
+        const aqiAvg = Math.round(avg(validAqi)), aqiMax = Math.max(...validAqi);
+        const goodDays = validAqi.filter(v => v <= 50).length;
+        const totalDays = validAqi.length;
+
+        document.getElementById('airStatsGrid').innerHTML = `
+            <div class="aq-stat"><span class="label">PM2.5 日均</span><span class="value">${pmAvg.toFixed(1)} μg/m³</span></div>
+            <div class="aq-stat"><span class="label">PM2.5 峰值</span><span class="value" style="color:#c44536;">${pmMax} μg/m³</span></div>
+            <div class="aq-stat"><span class="label">US AQI 均值</span><span class="value">${aqiAvg}</span></div>
+            <div class="aq-stat"><span class="label">US AQI 峰值</span><span class="value" style="color:#c44536;">${aqiMax}</span></div>
+            <div class="aq-stat"><span class="label">优良天数 (AQI≤50)</span><span class="value">${goodDays} / ${totalDays}</span></div>`;
+    }
+
+    // ============================================================
+    // 启动：两个请求并行，互不阻塞
+    // ============================================================
     loadWeather();
+    loadAirQuality();
 </script>
 
 </body>

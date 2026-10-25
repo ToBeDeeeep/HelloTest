@@ -19,7 +19,6 @@
         .page-header h1 { font-size: 2.2rem; font-weight: 600; letter-spacing: 2px; color: #0b1e2e; }
         .page-header .sub { font-size: 0.9rem; color: #5a6f84; margin-top: 6px; }
 
-        /* 天气卡片（沿用） */
         .current-card {
             background: #fff; border-radius: 28px; padding: 32px 36px;
             box-shadow: 0 12px 30px rgba(0,20,40,.08), 0 2px 8px rgba(0,20,40,.04);
@@ -36,7 +35,6 @@
         .current-right { text-align: right; font-size: .9rem; color: #5a6f84; line-height: 1.7; }
         .current-right .label { color: #8fa0b2; font-size: .8rem; letter-spacing: .5px; }
 
-        /* 通用卡片 */
         .card {
             background: #fff; border-radius: 28px; padding: 28px 32px 32px;
             box-shadow: 0 12px 30px rgba(0,20,40,.08); margin-bottom: 24px;
@@ -50,7 +48,6 @@
             background: #2a6f97; border-radius: 4px;
         }
 
-        /* 表格 */
         table { width: 100%; border-collapse: collapse; font-size: .95rem; }
         thead th {
             text-align: left; padding: 12px 8px; font-weight: 500;
@@ -72,11 +69,9 @@
         .temp-low { color: #3d6e9c; }
         .temp-diff { color: #7a5c9e; font-size: .85rem; }
 
-        /* 图表容器 */
         .chart-wrap { position: relative; height: 360px; margin-top: 8px; }
         .chart-note { font-size: .78rem; color: #8fa0b2; margin-top: 14px; line-height: 1.6; }
 
-        /* 空气质量统计小条 */
         .aq-stats {
             display: flex; flex-wrap: wrap; gap: 16px 32px;
             margin-top: 20px; padding-top: 18px; border-top: 1.5px dashed #dde6ef;
@@ -85,7 +80,6 @@
         .aq-stat .label { font-size: .72rem; color: #8fa0b2; letter-spacing: .4px; }
         .aq-stat .value { font-size: 1.1rem; font-weight: 600; color: #0b1e2e; }
 
-        /* 加载/错误 */
         .loading, .error { text-align: center; padding: 40px 20px; color: #5a6f84; font-size: .95rem; }
         .error { color: #b3413a; }
         .spinner {
@@ -113,17 +107,15 @@
     <div class="page-header">
         <h1>安阳 · 天气与空气质量</h1>
         <div class="sub">
-            天气：Open-Meteo · 空气质量：Open-Meteo / CAMS
+            天气：中央气象台 · 空气质量：CAMS 模型
             <span id="updateTime"></span>
         </div>
     </div>
 
-    <!-- 天气区（保持原有功能） -->
     <div id="weatherSection">
-        <div class="loading"><div class="spinner"></div>正在获取天气数据…</div>
+        <div class="loading"><div class="spinner"></div>正在获取中央气象台数据…</div>
     </div>
 
-    <!-- 七日天气统计表 -->
     <div class="card" id="weatherTableCard" style="display: none;">
         <h2>未来七日天气统计</h2>
         <table>
@@ -135,7 +127,6 @@
         <div class="aq-stats" id="weatherStatsGrid"></div>
     </div>
 
-    <!-- 空气质量曲线图（新增） -->
     <div class="card" id="airCard" style="display: none;">
         <h2>近 5 个月空气质量趋势</h2>
         <div class="chart-wrap">
@@ -144,102 +135,134 @@
         <div class="aq-stats" id="airStatsGrid"></div>
         <div class="chart-note">
             指标说明：<strong>PM2.5</strong> 为细颗粒物（μg/m³），是雾霾的核心观测值；
-            <strong>US AQI</strong> 为美国环保署空气质量指数（0–500，越低越好），综合反映 PM2.5、PM10、臭氧等污染物。
-            数据基于 CAMS 再分析，为模型估算值，与地面监测站实测可能存在偏差。
+            <strong>US AQI</strong> 为美国环保署空气质量指数（0–500，越低越好）。
+            空气质量历史数据基于 CAMS 再分析，为模型估算值，与地面监测站实测可能存在偏差。
         </div>
     </div>
 </div>
 
 <script>
     // ============================================================
-    // 通用：WMO 天气代码映射（沿用）
+    // 1. 中央气象台天气代码映射
     // ============================================================
-    const WMO_MAP = {
-        0:'晴',1:'大部晴朗',2:'多云',3:'阴',45:'雾',48:'雾凇',
-        51:'小毛毛雨',53:'毛毛雨',55:'大毛毛雨',56:'冻毛毛雨',57:'强冻毛毛雨',
-        61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'强冻雨',
-        71:'小雪',73:'中雪',75:'大雪',77:'米雪',
-        80:'小阵雨',81:'阵雨',82:'强阵雨',85:'小阵雪',86:'大阵雪',
-        95:'雷暴',96:'雷暴伴小冰雹',99:'雷暴伴大冰雹'
+    const CMA_MAP = {
+        '00':'晴','01':'多云','02':'阴','03':'阵雨','04':'雷阵雨','05':'雷阵雨伴有冰雹',
+        '06':'雨夹雪','07':'小雨','08':'中雨','09':'大雨','10':'暴雨','11':'大暴雨','12':'特大暴雨',
+        '13':'阵雪','14':'小雪','15':'中雪','16':'大雪','17':'暴雪','18':'雾','19':'冻雨',
+        '20':'沙尘暴','21':'小到中雨','22':'中到大雨','23':'大到暴雨','24':'暴雨到大暴雨',
+        '25':'大暴雨到特大暴雨','26':'小到中雪','27':'中到大雪','28':'大到暴雪','29':'浮尘',
+        '30':'扬沙','31':'强沙尘暴','53':'霾'
     };
-    const WMO_ICON = {
-        0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
-        51:'🌦️',53:'🌦️',55:'🌦️',56:'🌧️',57:'🌧️',
-        61:'🌧️',63:'🌧️',65:'🌧️',66:'🌧️',67:'🌧️',
-        71:'🌨️',73:'🌨️',75:'❄️',77:'🌨️',
-        80:'🌦️',81:'🌧️',82:'⛈️',85:'🌨️',86:'❄️',
-        95:'⛈️',96:'⛈️',99:'⛈️'
+    const CMA_ICON = {
+        '00':'☀️','01':'⛅','02':'☁️','03':'🌦️','04':'⛈️','05':'⛈️',
+        '06':'🌨️','07':'🌧️','08':'🌧️','09':'🌧️','10':'🌧️','11':'🌧️','12':'🌧️',
+        '13':'🌨️','14':'🌨️','15':'🌨️','16':'❄️','17':'❄️','18':'🌫️','19':'🌧️',
+        '20':'🌪️','21':'🌧️','22':'🌧️','23':'🌧️','24':'🌧️','25':'🌧️',
+        '26':'🌨️','27':'🌨️','28':'❄️','29':'🌫️','30':'🌫️','31':'🌪️','53':'🌫️'
     };
-    const getDesc = c => WMO_MAP[c] || '未知';
-    const getIcon = c => WMO_ICON[c] || '🌡️';
+
+    function getCmaDesc(code) { return CMA_MAP[code] || '多云'; }
+    function getCmaIcon(code) { return CMA_ICON[code] || '🌡️'; }
 
     // ============================================================
-    // 1. 天气数据（沿用上一版）
+    // 2. 请求中央气象台（免登录！走公共代理解决跨域）
+    //    安阳站号: 53898
     // ============================================================
-    const LAT =  36.0973, LON = 114.3922;
-    const WEATHER_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
-        `&daily=temperature_2m_max,temperature_2m_min,weathercode` +
-        `&timezone=Asia/Shanghai&forecast_days=7`;
+    const CMA_URL = 'https://weather.cma.cn/api/weather/view?stationid=53898';
 
-    async function loadWeather() {
-        try {
-            const resp = await fetch(WEATHER_URL);
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            const json = await resp.json();
-            if (!json.daily?.time?.length) throw new Error('天气数据为空');
-            renderWeather(json.daily);
-        } catch (e) {
-            document.getElementById('weatherSection').innerHTML =
-                `<div class="current-card" style="justify-content:center;"><div class="error">⚠️ 天气数据获取失败：${e.message}</div></div>`;
+    async function loadCMAWeather() {
+        // 使用两个免费的公共代理，防止某一个挂了
+        const proxies = [
+            'https://corsproxy.io/?' + encodeURIComponent(CMA_URL),
+            'https://api.allorigins.win/raw?url=' + encodeURIComponent(CMA_URL)
+        ];
+
+        let json = null;
+        for (let url of proxies) {
+            try {
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    json = await resp.json();
+                    break;
+                }
+            } catch (e) {
+                console.warn('代理失败，尝试下一个...', e);
+            }
         }
+
+        if (!json || !json.data || !json.data.daily) {
+            document.getElementById('weatherSection').innerHTML = 
+                `<div class="current-card" style="justify-content:center;"><div class="error">⚠️ 获取气象台数据失败，请刷新重试。</div></div>`;
+            return;
+        }
+
+        renderCMAWeather(json.data.daily);
     }
 
-    function renderWeather(daily) {
-        const highs = daily.temperature_2m_max, lows = daily.temperature_2m_min, codes = daily.weathercode;
+    function renderCMAWeather(daily) {
+        // 兼容气象台的不同字段命名
+        const today = daily[0];
+        const todayHigh = parseInt(today.high || today.highTemperature, 10);
+        const todayLow = parseInt(today.low || today.lowTemperature, 10);
+        const todayText = today.dayText || today.dayWeather || '多云';
+        const todayCode = today.dayCode || today.dayWeatherCode || '01';
+        const todayIcon = getCmaIcon(todayCode);
 
-        const h0 = Math.round(highs[0]), l0 = Math.round(lows[0]);
-        const c0 = codes[0];
         document.getElementById('weatherSection').innerHTML = `
             <div class="current-card">
                 <div class="current-left">
-                    <div class="current-icon">${getIcon(c0)}</div>
-                    <div class="current-temp">${h0}<span class="unit">°C</span></div>
+                    <div class="current-icon">${todayIcon}</div>
+                    <div class="current-temp">${todayHigh}<span class="unit">°C</span></div>
                     <div class="current-meta">
-                        <div class="desc">${getDesc(c0)}</div>
-                        <div class="range">最低 ${l0}°C · 最高 ${h0}°C</div>
+                        <div class="desc">${todayText}</div>
+                        <div class="range">最低 ${todayLow}°C · 最高 ${todayHigh}°C</div>
                     </div>
                 </div>
                 <div class="current-right">
-                    <div class="label">天气数据更新</div>
+                    <div class="label">数据来源：中央气象台</div>
                     <div>${new Date().toLocaleString('zh-CN', { hour12: false })}</div>
                 </div>
             </div>`;
 
         const tbody = document.getElementById('forecastBody');
         tbody.innerHTML = '';
-        const dayNames = ['今天','明天','后天'];
         const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
 
         let tH = 0, tL = 0, tD = 0, maxH = -Infinity, minL = Infinity, n = 0;
-        daily.time.forEach((ds, i) => {
-            const h = Math.round(highs[i]), l = Math.round(lows[i]), d = h - l;
-            const label = i < 3 ? dayNames[i] : (() => {
-                const dt = new Date(ds + 'T00:00:00'); return weekdays[dt.getDay()];
-            })();
+
+        // 只取前7天
+        daily.slice(0, 7).forEach((d, i) => {
+            const h = parseInt(d.high || d.highTemperature, 10);
+            const l = parseInt(d.low || d.lowTemperature, 10);
+            const diff = h - l;
+            const text = d.dayText || d.dayWeather || '多云';
+            const code = d.dayCode || d.dayWeatherCode || '01';
+
+            let label;
+            if (i === 0) label = '今天';
+            else if (i === 1) label = '明天';
+            else if (i === 2) label = '后天';
+            else {
+                const dt = new Date(d.date + 'T00:00:00');
+                label = weekdays[dt.getDay()];
+            }
+            
             const shortDate = (() => {
-                const dt = new Date(ds + 'T00:00:00'); return (dt.getMonth()+1)+'月'+dt.getDate()+'日';
+                const dt = new Date(d.date + 'T00:00:00');
+                return (dt.getMonth()+1)+'月'+dt.getDate()+'日';
             })();
-            tH += h; tL += l; tD += d; n++;
+
+            tH += h; tL += l; tD += diff; n++;
             if (h > maxH) maxH = h;
             if (l < minL) minL = l;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><div class="day-label">${label}<span class="date">${shortDate}</span></div></td>
-                <td><span class="weather-badge">${getIcon(codes[i])} ${getDesc(codes[i])}</span></td>
+                <td><span class="weather-badge">${getCmaIcon(code)} ${text}</span></td>
                 <td class="temp-high">${h}°C</td>
                 <td class="temp-low">${l}°C</td>
-                <td class="temp-diff">${d}°</td>`;
+                <td class="temp-diff">${diff}°</td>`;
             tbody.appendChild(tr);
         });
 
@@ -255,10 +278,10 @@
     }
 
     // ============================================================
-    // 2. 空气质量历史数据（新增）
-    //    Open-Meteo Air Quality API · 免 Key · CORS 开启
-    //    历史数据可回溯至 ~2022-07
+    // 3. 空气质量历史数据（使用 Open-Meteo，免登录直连）
     // ============================================================
+    const LAT = 36.10, LON = 114.39;
+
     function getDateRange(daysBack) {
         const end = new Date();
         const start = new Date();
@@ -268,7 +291,7 @@
     }
 
     async function loadAirQuality() {
-        const { start, end } = getDateRange(150); // 约 5 个月
+        const { start, end } = getDateRange(150);
         const url = `https://air-quality-api.open-meteo.com/v1/air-quality` +
             `?latitude=${LAT}&longitude=${LON}` +
             `&hourly=pm2_5,us_aqi` +
@@ -281,7 +304,6 @@
             const json = await resp.json();
             if (!json.hourly?.time?.length) throw new Error('空气质量数据为空');
 
-            // 按天聚合（每日均值），避免 3600+ 个点挤在一起
             const daily = aggregateDaily(json.hourly);
             renderAirQuality(daily);
         } catch (e) {
@@ -291,9 +313,8 @@
         }
     }
 
-    /** 将逐小时数据聚合为每日均值 */
     function aggregateDaily(hourly) {
-        const map = new Map(); // date → { pmSum, pmN, aqiSum, aqiN }
+        const map = new Map();
         hourly.time.forEach((iso, i) => {
             const date = iso.slice(0, 10);
             if (!map.has(date)) map.set(date, { pmSum: 0, pmN: 0, aqiSum: 0, aqiN: 0 });
@@ -397,7 +418,6 @@
             }
         });
 
-        // 空气质量统计摘要
         const validPm = daily.pm2_5.filter(v => v != null);
         const validAqi = daily.usAqi.filter(v => v != null);
         const avg = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
@@ -414,10 +434,8 @@
             <div class="aq-stat"><span class="label">优良天数 (AQI≤50)</span><span class="value">${goodDays} / ${totalDays}</span></div>`;
     }
 
-    // ============================================================
-    // 启动：两个请求并行，互不阻塞
-    // ============================================================
-    loadWeather();
+    // 启动
+    loadCMAWeather();
     loadAirQuality();
 </script>
 
